@@ -250,7 +250,7 @@
         </div>
         <div class="field">
           <label for="lastName">Last name</label>
-          <input id="lastName" name="lastName" type="text" autocomplete="family-name" placeholder="Doe" required />
+          <input id="lastName" name="lastName" type="text" autocomplete="family-name" placeholder="Doe" />
         </div>
       </div>
 
@@ -283,7 +283,7 @@
     </form>
 
     <div class="footer">
-      Already have an account? <a href="/o/authenticate">Sign in</a>
+      Already have an account? <a href="/authenticate.html" id="signinLink">Sign in</a>
     </div>
   </div>
 
@@ -297,8 +297,13 @@
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirmPassword');
     const confirmHint = document.getElementById('confirmHint');
+    const signinLink = document.getElementById('signinLink');
 
     const params = new URLSearchParams(window.location.search);
+    const hasAuthorizeParams = params.has('client_id') && params.has('redirect_uri');
+    signinLink.href = hasAuthorizeParams
+      ? `/o/authenticate${window.location.search}`
+      : '/authenticate.html';
 
     confirmInput.addEventListener('input', () => {
       const mismatch = confirmInput.value && confirmInput.value !== passwordInput.value;
@@ -339,7 +344,7 @@
       const password = passwordInput.value;
       const confirmPassword = confirmInput.value;
 
-      if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      if (!firstName || !email || !password || !confirmPassword) {
         showError('Please fill in all fields.');
         return;
       }
@@ -381,7 +386,9 @@
         } else {
           showSuccess('Account created! Redirecting…');
           setTimeout(() => {
-            window.location.href = `/o/authenticate${window.location.search}`;
+            window.location.href = hasAuthorizeParams
+              ? `/o/authenticate${window.location.search}`
+              : '/authenticate.html';
           }, 1500);
         }
       } catch {

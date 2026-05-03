@@ -230,61 +230,43 @@
           <path d="M20 21a8 8 0 1 0-16 0"/>
         </svg>
       </div>
-      <h1>Welcome back</h1>
-      <p class="subtitle">Sign in to your account to continue</p>
+      <h1>Authorization required</h1>
+      <p class="subtitle" id="appSubtitle">Do you want to continue?</p>
     </div>
 
-    <form class="form" id="loginForm" novalidate>
+    <form class="form" id="consentForm" novalidate>
       <div id="errorMsg" class="error-msg" role="alert"></div>
-
-      <div class="field">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          placeholder="you@example.com"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <div class="field-row">
-          <label for="password">Password</label>
-          <a href="#" class="forgot">Forgot password?</a>
-        </div>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          required
-        />
-      </div>
 
       <button type="submit" id="submitBtn">
         <span class="spinner" id="spinner"></span>
-        <span id="btnText">Sign in</span>
+        <span id="btnText">Continue</span>
       </button>
     </form>
-
-    <div class="footer">
-      Don't have an account? <a href="/signup.html" id="signupLink">Sign up</a>
-    </div>
   </div>
 
   <script>
-    const form = document.getElementById('loginForm');
+    const form = document.getElementById('consentForm');
     const submitBtn = document.getElementById('submitBtn');
     const spinner = document.getElementById('spinner');
     const btnText = document.getElementById('btnText');
     const errorMsg = document.getElementById('errorMsg');
-    const signupLink = document.getElementById('signupLink');
+    const appSubtitle = document.getElementById('appSubtitle');
 
     const params = new URLSearchParams(window.location.search);
-    signupLink.href = `/signup.html${window.location.search}`;
+
+    async function loadAppDetails() {
+      try {
+        const res = await fetch(`/o/authenticate/application?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          appSubtitle.textContent = `Do you want to continue to ${data.name}?`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadAppDetails();
 
     function showError(msg) {
       errorMsg.textContent = msg;
@@ -298,30 +280,19 @@
     function setLoading(loading) {
       submitBtn.disabled = loading;
       spinner.style.display = loading ? 'block' : 'none';
-      btnText.textContent = loading ? 'Signing in…' : 'Sign in';
+      btnText.textContent = loading ? 'Continuing…' : 'Continue';
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       hideError();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      if (!email || !password) {
-        showError('Please fill in all fields.');
-        return;
-      }
-
       setLoading(true);
 
       try {
-        const res = await fetch('/o/authenticate/sign-in', {
+        const res = await fetch('/o/authenticate/consent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email,
-            password,
             client_id: params.get('client_id'),
             redirect_uri: params.get('redirect_uri'),
             state: params.get('state'),
@@ -335,10 +306,6 @@
           showError(data.message || 'Something went wrong. Please try again.');
         } else if (data.redirect) {
           window.location.href = data.redirect;
-        } else if (data.success) {
-          window.location.href = '/';
-        } else {
-          showError('Sign in completed, but no redirect was returned.');
         }
       } catch {
         showError('Something went wrong. Please try again.');

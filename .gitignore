@@ -110,6 +110,15 @@ dist
 # Serverless directories
 .serverless/
 
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Certificates
+cert/*.pub
+cert/*.pem
+.serverless/
+
 # FuseBox cache
 .fusebox/
 
