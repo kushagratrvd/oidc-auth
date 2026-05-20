@@ -115,6 +115,7 @@ dist
 Thumbs.db
 
 # Certificates
+cert/
 cert/*.pub
 cert/*.pem
 .serverless/
